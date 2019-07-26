@@ -68,11 +68,11 @@
 
 ![image](https://github.com/shenpeiliang/blog/blob/master/微信公众号开发/image/自定义菜单.png)
 
-![image](https://github.com/shenpeiliang/blog/blob/master/微信公众号开发/image/自定义菜单-form..png)
+![image](https://github.com/shenpeiliang/blog/blob/master/微信公众号开发/image/自定义菜单-form.png)
 
 ![image](https://github.com/shenpeiliang/blog/blob/master/微信公众号开发/image/客服消息.png)
 
-![image](https://github.com/shenpeiliang/blog/blob/master/微信公众号开发/image/模板id.png)
+![image](https://github.com/shenpeiliang/blog/blob/master/微信公众号开发/image/模板ID.png)
 
 ![image](https://github.com/shenpeiliang/blog/blob/master/微信公众号开发/image/模板消息发送.png)
 
