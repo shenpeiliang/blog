@@ -1,5 +1,12 @@
 ### 简介
 
+环境： 
+
+Centos7下使用Docker环境(php7.3 + mysql5.7.24 + nginx1.15.7)
+
+php框架
+
+Thinkphp3.2.3
 
 
 ### 功能说明
