@@ -48,7 +48,7 @@
                     var hourNum = parseInt(countTime / 3600);
                     //分数
                     countTime = countTime - hourNum * 3600;
-                    var minuteNum = parseInt(tempts / 60);
+                    var minuteNum = parseInt(countTime / 60);
                     //秒数
                     countTime = countTime - minuteNum * 60;
                     var secondNum = parseInt(countTime);
