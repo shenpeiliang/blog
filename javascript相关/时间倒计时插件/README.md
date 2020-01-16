@@ -18,4 +18,4 @@ $(function () {
 
 ### 效果
 
-![image](https://github.com/shenpeiliang/blog/blob/master/javascript%E7%9B%B8%E5%85%B3/%E8%BF%9B%E5%BA%A6%E6%9D%A1%E6%8F%92%E4%BB%B6/effect.png)
+![image](https://github.com/shenpeiliang/blog/blob/master/javascript%E7%9B%B8%E5%85%B3/%E6%97%B6%E9%97%B4%E5%80%92%E8%AE%A1%E6%97%B6%E6%8F%92%E4%BB%B6/effect.png)
