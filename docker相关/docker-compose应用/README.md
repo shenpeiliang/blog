@@ -72,4 +72,4 @@ exec回直接进入容器，而run则是在当前容器基础上新建一个一�
 
 ### 启动后效果图
 
-![image](https://github.com/shenpeiliang/blog/blob/master/docker相关/docker-compose应用/image/docker-compose状态.png)
+![image](image/docker-compose状态.png)

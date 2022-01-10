@@ -66,24 +66,24 @@ Thinkphp3.2.3
 
 ### 功能图解
 
-![image](https://github.com/shenpeiliang/blog/blob/master/微信公众号开发/image/公众号功能.png)
+![image](image/公众号功能.png)
 
 
 ### 功能效果图
 
-![image](https://github.com/shenpeiliang/blog/blob/master/微信公众号开发/image/自定义回复.png)
+![image](image/自定义回复.png)
 
-![image](https://github.com/shenpeiliang/blog/blob/master/微信公众号开发/image/自定义菜单.png)
+![image](image/自定义菜单.png)
 
-![image](https://github.com/shenpeiliang/blog/blob/master/微信公众号开发/image/自定义菜单-form.png)
+![image](image/自定义菜单-form.png)
 
-![image](https://github.com/shenpeiliang/blog/blob/master/微信公众号开发/image/客服消息.png)
+![image](image/客服消息.png)
 
-![image](https://github.com/shenpeiliang/blog/blob/master/微信公众号开发/image/模板ID.png)
+![image](image/模板ID.png)
 
-![image](https://github.com/shenpeiliang/blog/blob/master/微信公众号开发/image/模板消息发送.png)
+![image](image/模板消息发送.png)
 
-![image](https://github.com/shenpeiliang/blog/blob/master/微信公众号开发/image/用户列表.png)
+![image](image/用户列表.png)
 
 ### 数据结构
 
