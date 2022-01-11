@@ -155,7 +155,7 @@ systemctl restart docker
 
 > docker-compose安装
 
-[docker相关文件](/docker)
+[docker相关文件](docker)
 
 ```
 需要管理员安装：
