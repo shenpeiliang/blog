@@ -155,7 +155,7 @@ systemctl restart docker
 
 > docker-compose安装
 
-[docker相关文件](docker)
+[docker相关文件](/docker)
 
 ```
 需要管理员安装：
@@ -423,3 +423,4 @@ help->ssl-proxying->install proxy root certificate
 https://blog.csdn.net/pineapple_C/article/details/109168828
 
 https://www.charlesproxy.com/documentation/installation/apt-repository/
+
