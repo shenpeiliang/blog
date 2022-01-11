@@ -1,5 +1,5 @@
 ### 基础相关
-> deepin常用
+#### deepin常用
 
 ```
 进系统后修改超管账号密码：
@@ -21,7 +21,7 @@ ctrl+alt+t
 
 ```
 
-> 跳转目录快捷键
+#### 跳转目录快捷键
 
 ```
 
@@ -51,7 +51,7 @@ source ~/.bashrc
 cd-www
 ```
 
-> 常见问题
+#### 常见问题
 
 vim复制粘贴不了：
 
@@ -72,7 +72,7 @@ if has('mouse')
 endif
 ```
 
-> 其他
+#### 其他
 
 查看所有用户：
 vi /etc/passwd
@@ -118,7 +118,7 @@ gg=G 格式化
 ggvG 全选复制
 
 ### 环境搭建
-> git安装
+#### git安装
 
 ```
 sudo apt install git
@@ -136,7 +136,7 @@ ls -lh ~/.ssh
 git config --global core.quotepath false
 ```
 
-> docker安装
+#### docker安装
 
 ```
 安装：
@@ -153,7 +153,7 @@ systemctl daemon-reload
 systemctl restart docker
 ```
 
-> docker-compose安装
+#### docker-compose安装
 
 [docker相关文件](docker)
 
@@ -180,7 +180,7 @@ docker-compose up -d
 
 ```
 
-> mysql相关
+#### mysql相关
 
 ```
 进入容器：
@@ -210,7 +210,7 @@ sudo chmod 644 mysql.conf.d
 
 ```
 
-> nginx站点配置
+#### nginx站点配置
 
 ```
 域名解析：
@@ -229,7 +229,7 @@ nginx -s reload
 
 ```
 
-> php配置
+#### php配置
 
 - 安装xdebug扩展
 ```
@@ -323,7 +323,7 @@ chown -R 1000:1000 /data/htdocs
 ```
 
 ### 开发工具
-> phpstorm汉化
+#### phpstorm汉化
 
 settings >> Plugins：
 
@@ -369,7 +369,7 @@ Categories=Development;IDE;
 StartupNotify=true
 ```
 
-> 数据库管理工具
+#### 数据库管理工具
 
 mysql-workbench
 
@@ -400,7 +400,7 @@ alias heidisql='deepin-wine /media/shikee/ntfs/HeidiSQL/heidisql.exe'
 source ~/.bashrc
 ```
 
-> 网络抓包工具
+#### 网络抓包工具
 
 ```
 安装：
