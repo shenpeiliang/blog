@@ -323,7 +323,7 @@ chown -R 1000:1000 /data/htdocs
 ```
 
 ### 开发工具
-#### phpstorm汉化
+#### phpstorm安装
 
 settings >> Plugins：
 
