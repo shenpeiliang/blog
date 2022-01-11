@@ -260,22 +260,28 @@ xdebug.trigger_value = StartProfileForMe
 ```
 
 相关参考：
+
 https://www.cnblogs.com/jun1019/p/9735250.html
 
 xdebug3配置:
+
 https://www.cnblogs.com/feimoc/p/14684730.html
 
 官方配置说明：
+
 https://www.jetbrains.com/help/phpstorm/2021.2/configuring-xdebug.html#updatingPhpIni
 
 配置实例：
+
 https://blog.csdn.net/benpaodelulu_guajian/article/details/90574728
 
 注意client_host，官方推荐xdebug.client_host = host.docker.internal，但在容器内ping不通
 可以在/etc/hosts中添加：
+
 172.24.0.1 docker.host.internal 
 
 网络相关：
+
 https://blog.csdn.net/weixin_2158/article/details/106481238
 
 
@@ -420,6 +426,7 @@ help->ssl-proxying->install proxy root certificate
 ```
 
 参考：
+
 https://blog.csdn.net/pineapple_C/article/details/109168828
 
 https://www.charlesproxy.com/documentation/installation/apt-repository/
