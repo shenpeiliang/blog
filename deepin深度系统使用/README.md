@@ -148,6 +148,17 @@ docker version
 查看状态：
 systemctl status docker 
 
+镜像加速器：
+docker info
+Registry: https://index.docker.io/v1/
+
+需要改为国内的
+vim /etc/docker/daemon.json 
+
+{
+  "registry-mirrors": ["http://hub-mirror.c.163.com"]
+}
+
 设置开机启动：
 systemctl daemon-reload
 systemctl restart docker
