@@ -70,4 +70,4 @@ curl -d 'client_type=ios&client_version=1.0.1&uuid=13jdds333ljj3hhhjl323&api_ver
 {"code":"SIGN_MISMATCH","msg":"签名不匹配","data":[]}
 ```
 
-[代码](../../../../SHPhp/master/app/Controller/Appserver.class.php)
+[代码](../../../../SHPhp/tree/master/app/Controller/Appserver.class.php)
