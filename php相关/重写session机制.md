@@ -174,3 +174,7 @@ public function gc($maxlifetime)
 
 }
 ```
+
+参考代码：
+
+[代码1](../../../../SHPhp/tree/master/system/Core/Session/Driver/RedisHandler.class.php)
