@@ -1,6 +1,6 @@
 #### 简介
 
-JWT 是为了在网络应用环境间传递声明而执行的一种基于 JSON 的开放标准（RFC 7519）。JWT 的声明一般被用来在身份提供者和服务提供者间传递被认证的用户身份信息，以便于从资源服务器获取资源，比如获取登录用户信息
+JWT，JSON Web Token（简称 JWT）是目前最流行的跨域认证解决方案，是为了在网络应用环境间传递声明而执行的一种基于 JSON 的开放标准（RFC 7519）。JWT 的声明一般被用来在身份提供者和服务提供者间传递被认证的用户身份信息，以便于从资源服务器获取资源，比如用在用户登录上
 
 
 注意：
@@ -26,11 +26,11 @@ JWT 是为了在网络应用环境间传递声明而执行的一种基于 JSON �
 
 2. 服务端对客户端身份进行验证
 
-3. 服务端对该用户生成token，返回给客户端
+3. 服务端对该用户生成jwt，返回给客户端
 
 4. 客户端将token保存到本地浏览器，一般保存到cookie或localstorage
 
-5. 客户端发起请求，需要在请求头的 Authorization 字段中携带该token，或 以Cookie的方式存储但服务端需要设置支持CORS(跨来源资源共享)策略
+5. 客户端发起请求，需要在请求头的 Authorization 字段中携带该token，或以Cookie的方式存储但服务端需要设置支持CORS(跨来源资源共享)策略
 
 例如：
 ```
@@ -150,3 +150,46 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4
 - JWT：将 Token 和 Payload 加密后存储于客户端，服务端只需要使用密钥解密进行校验（校验也是 JWT 自己实现的）即可，不需要查询或者减少查询数据库，因为 JWT 自包含了用户信息和加密的数据
 
 - Token只是随机字符串，而JWT则包含可在一个时间范围或域内描述用户身份，授权数据和令牌有效性的信息和元数据，Oauth2兼容，JWT数据可以被检查且有失效控制
+
+
+#### php-jwt库的使用
+
+参考：
+```
+https://github.com/firebase/php-jwt
+```
+
+```
+<?php
+
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
+
+require './vendor/autoload.php';
+
+
+$key = "example_key";
+$payload = array(
+    "iss" => "http://example.org",
+    "aud" => "http://example.com",
+    "iat" => 1356999524,
+    "nbf" => 1357000000
+);
+
+$jwt = JWT::encode($payload, $key, 'HS256');
+$decoded = (array)JWT::decode($jwt, new Key($key, 'HS256'));
+
+var_dump($jwt, $decoded);
+```
+
+结果打印：
+```
+eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vZXhhbXBsZS5vcmciLCJhdWQiOiJodHRwOi8vZXhhbXBsZS5jb20iLCJpYXQiOjEzNTY5OTk1MjQsIm5iZiI6MTM1NzAwMDAwMH0.gOEkQc3YCCIIjE-GxU0UTa9Lx6hQwwk5zYfO4pZQZt4" 
+
+array(4) { 
+    ["iss"]=> string(18) "http://example.org" 
+    ["aud"]=> string(18) "http://example.com" 
+    ["iat"]=> int(1356999524) 
+    ["nbf"]=> int(1357000000) 
+    }
+```
