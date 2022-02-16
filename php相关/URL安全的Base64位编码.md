@@ -40,7 +40,7 @@ base64不适合直接放在URL里作为参数传输,发现base64编码中有“/
 
 编码：
 ```
-public static function urlsafeB64Encode($input)
+public function urlsafeB64Encode(string $input)
 {
     return str_replace('=', '', strtr(base64_encode($input), '+/', '-_'));
 }
@@ -48,7 +48,7 @@ public static function urlsafeB64Encode($input)
 
 解码：
 ```
-public static function urlsafeB64Decode($input)
+public function urlsafeB64Decode(string $input)
 {
     //按位填充等号
     $remainder = strlen($input) % 4;
@@ -59,3 +59,5 @@ public static function urlsafeB64Decode($input)
     return base64_decode(strtr($input, '-_', '+/'));
 }
 ```
+
+[代码](../../../../SHPhp/tree/master/system/Library/UrlSafeBase64.class.php)

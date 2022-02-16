@@ -86,11 +86,11 @@ aud: 接收jwt的一方
 
 exp: jwt的过期时间，这个过期时间必须要大于签发时间
 
-nbf: 定义在什么时间之前，该jwt都是不可用的.
+nbf: 定义在什么时间之前，该jwt都是不可用的
 
 iat: jwt的签发时间
 
-jti: jwt的唯一身份标识，主要用来作为一次性token,从而回避重放攻击。
+jti: jwt的唯一身份标识，主要用来作为一次性token,从而回避重放攻击
 ```
 
 - 公共的声明
@@ -150,6 +150,90 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4
 - JWT：将 Token 和 Payload 加密后存储于客户端，服务端只需要使用密钥解密进行校验（校验也是 JWT 自己实现的）即可，不需要查询或者减少查询数据库，因为 JWT 自包含了用户信息和加密的数据
 
 - Token只是随机字符串，而JWT则包含可在一个时间范围或域内描述用户身份，授权数据和令牌有效性的信息和元数据，Oauth2兼容，JWT数据可以被检查且有失效控制
+
+
+#### 实现
+
+- 编码
+```
+public function encode($payload, $key, $alg, $head = null): string
+{
+    $header = [
+        'typ' => 'JWT',
+        'alg' => $alg
+    ];
+
+    if (isset($head) && is_array($head))
+        $header = array_merge($head, $header);
+
+    //三部分
+    $segments = [];
+
+    $url_safe_base64 = new UrlSafeBase64();
+
+    //头部（header）
+    $segments[] = $url_safe_base64->encode(json_encode($header, JSON_UNESCAPED_SLASHES));
+
+    //载荷（payload）
+    $segments[] = $url_safe_base64->encode(json_encode($payload, JSON_UNESCAPED_SLASHES));
+
+    //签名 （signature）
+    $msg = implode('.', $segments);
+    $signature = $this->sign($msg, $key, $alg);
+    if(!$signature)
+        return false;
+
+    $segments[] = $url_safe_base64->encode($signature, JSON_UNESCAPED_SLASHES);
+
+    //组合
+    return implode('.', $segments);
+}
+```
+
+- 解码
+```
+public function decode($jwt, $key){
+    //当前时间戳
+    $timestamp = time();
+
+    //拆分
+    list($header64, $payload64, $signature64) = explode('.', $jwt);
+
+    $url_safe_base64 = new UrlSafeBase64();
+
+    //解码
+    $header = $url_safe_base64->decode($header64);
+    $payload = $url_safe_base64->decode($payload64);
+    $signature = $url_safe_base64->decode($signature64);
+
+    if(!isset($header['alg']))
+        return $this->_error('参数错误');
+
+    //签名是否合法
+    $sign = $this->sign($header64 . '.' . $payload64, $key, $header['alg']);
+    if(!$sign) return false;
+
+    if($sign != $signature)
+        return $this->_error('签名不匹配');
+
+    //定义在什么时间之前，该jwt都是不可用的
+    if (isset($payload['nbf']) && $payload['nbf'] > ($timestamp + static::$leeway))
+        return $this->_error('token不可用');
+
+    //jwt的签发时间
+    if (isset($payload['iat']) && $payload['iat'] > ($timestamp + static::$leeway))
+        return $this->_error('token不合法');
+
+    //jwt的过期时间
+    if (isset($payload['exp']) && $payload['exp'] < ($timestamp - static::$leeway))
+        return $this->_error('token已过期');
+
+    return $payload;
+}
+```
+
+
+[代码](../../../../SHPhp/tree/master/system/Library/Jwt.class.php)
 
 
 #### php-jwt库的使用
