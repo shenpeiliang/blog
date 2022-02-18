@@ -156,7 +156,7 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4
 
 - 一次性验证以及时效性的特性，可以用于账号注册成功后的激活动作，jwt 的 payload 中固定的参数：iss 签发者（激活账号）和 exp 过期时间可以作为激活链接，先验证链接的合法性，从而避免多余地去查询数据库
 
-- 无状态特性，用于API身份验证，客户端和服务端共享 secret ，过期时间由服务端校验，客户端定时刷新（签名信息不可被修）
+- 无状态特性，用于API身份验证，客户端和服务端共享 secret ，过期时间由服务端校验，客户端定时刷新（签名信息不可被修改）
 
 - 单点登录+会话管理（不推荐）
 
