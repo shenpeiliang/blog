@@ -8,7 +8,7 @@
 
 > 同域下的单点登录
 
-有且只有一个域名，通过二级域名区分不同的站点，比如 www.sk.com 、user.sk.com 、seller.sk.com，单点登录的站点为 login.sk.com，我们只要在 login.sk.com 登录成功，所有的站点就也登录了
+有且只有一个域名，通过二级域名区分不同的站点，比如 www.sk.com 、user.sk.com 、seller.sk.com，单点登录的站点为 login.sk.com，我们需要在 login.sk.com 登录成功后，所有的站点就也登录了
 
 针对这个问题，我们可以在 login.sk.com 站点登录成功后将 Cookie 的域设置为顶域，即 .sk.com ，每个站点的 Session 就达到共享的目的了
 
@@ -16,12 +16,12 @@
 
 这种方式就不限制只能是一个域名了，可能是 www.taobao.com ，另外一个可能是 www.tmall.com
 
-在A站点登录成功后在页面加入一行Javascript通知B站点同步登录，例如
+在A站点登录成功后在页面加入一行 Javascript 通知B站点同步登录，例如
 ```
 <script type="text/javascript" src="http://login.sk.com/sign_on?source=1&uid=10&token=8bc22c2f-fd4b-4b7b-b42d-8b62c85032b7"></script>
 ```
 
-B站点需要拥有跨域的权限设置 Cookie，通过解析令牌成功后同步登录并写入 Cookie
+B站点需要提供可以跨域设置 Cookie 的权限，通过解析令牌成功后同步登录并写入 Cookie
 
 ```
 header('P3P:CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT"');
