@@ -80,3 +80,15 @@ git add .
 git commit -m 'init'
 git push
 ```
+
+#### 其他
+
+- 更改远程仓库指向 remote url
+
+```
+git remote set-url origin git@github.com:test/thinkphp.git
+
+或进入文件修改地址
+
+git config -e
+```
