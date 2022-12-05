@@ -17,6 +17,20 @@ xdebug.remote_host = 172.24.0.1
 xdebug.remote_port = 9003
 ```
 
+注意：
+docker-compose.yml 内容
+```
+php
+ ...
+ extra_hosts:
+        - host.docker.internal:host-gateway
+```
+
+宿主机防火墙需要开放端口，否则通知不了phpstorm
+```
+ufw allow 9003
+```
+
 > 配置二
 
 ![image](image/xdebug-2.png)
