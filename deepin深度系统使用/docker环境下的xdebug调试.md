@@ -10,10 +10,10 @@
 xdebug3配置：
 
 xdebug.client_port = 9003
-xdebug.client_host = 172.24.0.1
+xdebug.client_host = host.docker.internal
 
 xdebug2配置：
-xdebug.remote_host = 172.24.0.1
+xdebug.remote_host = host.docker.internal
 xdebug.remote_port = 9003
 ```
 
