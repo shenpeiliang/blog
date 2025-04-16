@@ -219,7 +219,7 @@ func (s *TaobaoTraderParser) ParseImage(filePath string) (result TradeNoResult, 
 	}
 
 	// 上传图片
-	responseData, err := s.Request.AddFile("file", filePath).Send(http.MethodPost, "http://ocr.qufaxian.com.cn/file?languages=chi_sim")
+	responseData, err := s.Request.AddFile("file", filePath).Send(http.MethodPost, "http://127.0.0.1:8080/ocr/file?languages=chi_sim")
 
 	if err != nil {
 		return
