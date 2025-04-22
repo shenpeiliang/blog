@@ -111,7 +111,7 @@ func getData() error {
 ## 完整代码
 
 ```go
-package request
+package multipart
 
 import (
 	"bytes"
@@ -123,17 +123,22 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"time"
 )
 
-// 封装了multipart/form-data请求的构建和发送
-type MultipartRequest struct {
-	URL    string            // 请求的URL
-	Fields map[string]any    // 表单字段，支持任意类型的值
-	Files  map[string]string // 文件字段，key为字段名，value为文件路径
-	writer *multipart.Writer // multipart.Writer
-	buffer *bytes.Buffer     // 请求体缓冲区
+// Request 封装了multipart/form-data请求的构建和发送
+type Request struct {
+	URL     string            // 请求的URL
+	Fields  map[string]any    // 表单字段，支持任意类型的值
+	Files   map[string]string // 文件字段，key为字段名，value为文件路径
+	Headers map[string]string // 自定义请求头
+	Client  *http.Client      // HTTP客户端
+	writer  *multipart.Writer // multipart.Writer
+	buffer  *bytes.Buffer     // 请求体缓冲区
+	timeout time.Duration     // 请求超时时间
 }
 
+// Response 表示HTTP响应
 type Response struct {
 	StatusCode int               // HTTP 状态码
 	Headers    map[string]string // 响应头
@@ -142,38 +147,75 @@ type Response struct {
 	Version    string            `json:"version"` // 版本号
 }
 
-// 创建一个新的MultipartRequest实例
-func NewMultipartRequest() *MultipartRequest {
-	return &MultipartRequest{
-		URL:    "",
-		Fields: make(map[string]any),
-		Files:  make(map[string]string),
-		buffer: &bytes.Buffer{},
+// NewRequest 创建一个新的Request实例
+func NewRequest(opts ...Option) *Request {
+	req := &Request{
+		Fields:  make(map[string]any),
+		Files:   make(map[string]string),
+		Headers: make(map[string]string),
+		buffer:  &bytes.Buffer{},
+		Client:  &http.Client{Timeout: 30 * time.Second},
+	}
+
+	for _, opt := range opts {
+		opt(req)
+	}
+
+	return req
+}
+
+// Option 配置选项类型
+type Option func(*Request)
+
+// WithTimeout 设置请求超时时间
+func WithTimeout(timeout time.Duration) Option {
+	return func(m *Request) {
+		m.timeout = timeout
+		m.Client.Timeout = timeout
 	}
 }
 
-// 添加一个表单字段，支持任意类型的值
-func (m *MultipartRequest) AddField(name string, value any) *MultipartRequest {
+// WithClient 设置自定义HTTP客户端
+func WithClient(client *http.Client) Option {
+	return func(m *Request) {
+		m.Client = client
+	}
+}
+
+// WithHeader 设置请求头
+func WithHeader(key, value string) Option {
+	return func(m *Request) {
+		m.Headers[key] = value
+	}
+}
+
+// AddField 添加一个表单字段，支持任意类型的值
+func (m *Request) AddField(name string, value any) *Request {
 	m.Fields[name] = value
 	return m
 }
 
-// 添加一个文件字段
-func (m *MultipartRequest) AddFile(fieldName, filePath string) *MultipartRequest {
+// AddFile 添加一个文件字段
+func (m *Request) AddFile(fieldName, filePath string) *Request {
 	m.Files[fieldName] = filePath
 	return m
 }
 
-// 构建multipart请求体
-func (m *MultipartRequest) buildPost() error {
-	// 重新初始化buffer和writer
+// AddHeader 添加请求头
+func (m *Request) AddHeader(key, value string) *Request {
+	m.Headers[key] = value
+	return m
+}
+
+// buildPost 构建multipart请求体
+func (m *Request) buildPost() error {
 	m.buffer.Reset()
 	m.writer = multipart.NewWriter(m.buffer)
 
 	// 添加表单字段
 	for key, value := range m.Fields {
 		if err := m.writer.WriteField(key, fmt.Sprintf("%v", value)); err != nil {
-			return fmt.Errorf("构建表单字段 %s 参数出错 %v", key, err)
+			return fmt.Errorf("failed to write field %s: %w", key, err)
 		}
 	}
 
@@ -181,82 +223,95 @@ func (m *MultipartRequest) buildPost() error {
 	for fieldName, filePath := range m.Files {
 		file, err := os.Open(filePath)
 		if err != nil {
-			return fmt.Errorf("构建表单字段 %s 参数出错 %v", filePath, err)
+			return fmt.Errorf("failed to open file %s: %w", filePath, err)
 		}
-
-		//defer file.Close() // 在循环中 defer 不会立即执行
 
 		part, err := m.writer.CreateFormFile(fieldName, filepath.Base(filePath))
 		if err != nil {
 			file.Close()
-			return fmt.Errorf("构建表单字段 %s 参数出错 %v", fieldName, err)
+			return fmt.Errorf("failed to create form file %s: %w", fieldName, err)
 		}
 
 		if _, err := io.Copy(part, file); err != nil {
 			file.Close()
-			return fmt.Errorf("文件操作出错: %v", err)
+			return fmt.Errorf("failed to copy file content: %w", err)
 		}
+		file.Close()
 	}
 
-	// 关闭writer
-	if err := m.writer.Close(); err != nil {
-		return fmt.Errorf("文件操作出错: %v", err)
-	}
-
-	return nil
+	return m.writer.Close()
 }
 
-// 构建GET请求
-func (m *MultipartRequest) buildGet() {
-	// 对于GET请求，将表单字段附加到URL中
+// buildGet 构建GET请求
+func (m *Request) buildGet() error {
 	values := url.Values{}
 	for key, value := range m.Fields {
 		values.Add(key, fmt.Sprintf("%v", value))
 	}
-	m.URL += "?" + values.Encode()
+
+	u, err := url.Parse(m.URL)
+	if err != nil {
+		return fmt.Errorf("invalid URL: %w", err)
+	}
+
+	query := u.Query()
+	for k, v := range values {
+		query[k] = v
+	}
+	u.RawQuery = query.Encode()
+	m.URL = u.String()
+
+	return nil
 }
 
 // Send 发送请求，支持GET和POST方法
-func (m *MultipartRequest) Send(method, url string) (Response, error) {
+func (m *Request) Send(method, url string) (Response, error) {
+	var response Response
 	m.URL = url
 
-	var response Response
+	// 验证HTTP方法
+	if method != http.MethodGet && method != http.MethodPost {
+		return response, fmt.Errorf("unsupported HTTP method: %s", method)
+	}
 
-	// 构建请求体
+	// 构建请求
 	var body io.Reader
 	var contentType string
 
 	if method == http.MethodPost {
 		if err := m.buildPost(); err != nil {
-			return response, err
+			return response, fmt.Errorf("failed to build POST request: %w", err)
 		}
 		body = m.buffer
 		contentType = m.writer.FormDataContentType()
 	} else {
-		m.buildGet()
-		body = nil
+		if err := m.buildGet(); err != nil {
+			return response, fmt.Errorf("failed to build GET request: %w", err)
+		}
 	}
 
 	// 创建HTTP请求
 	req, err := http.NewRequest(method, m.URL, body)
 	if err != nil {
-		return response, fmt.Errorf("请求创建出错: %v", err)
+		return response, fmt.Errorf("failed to create request: %w", err)
 	}
 
 	// 设置请求头
 	if contentType != "" {
 		req.Header.Set("Content-Type", contentType)
 	}
+	for k, v := range m.Headers {
+		req.Header.Set(k, v)
+	}
 
 	// 发送请求
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := m.Client.Do(req)
 	if err != nil {
-		return response, fmt.Errorf("请求发送出错: %v", err)
+		return response, fmt.Errorf("request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
-	// 解析响应头
+	// 处理响应
 	response.StatusCode = resp.StatusCode
 	response.Headers = make(map[string]string)
 	for k, v := range resp.Header {
@@ -265,17 +320,15 @@ func (m *MultipartRequest) Send(method, url string) (Response, error) {
 		}
 	}
 
-	// 读取响应
 	bodyData, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return response, fmt.Errorf("读取响应数据出错: %v", err)
+		return response, fmt.Errorf("failed to read response body: %w", err)
 	}
 	response.Body = bodyData
 
-	// 解析响应
+	// 尝试解析JSON响应
 	if err := json.Unmarshal(bodyData, &response); err != nil {
 		response.Result = string(bodyData)
-		return response, fmt.Errorf("解析响应数据出错: %v", err)
 	}
 
 	return response, nil
