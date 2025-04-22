@@ -236,33 +236,28 @@ func NewRequester(opts ...RequesterOption) *Requester {
 	return r
 }
 
-// GetAsync 发起异步GET请求，返回结果通道
-func (r *Requester) GetAsync(url string, header map[string]string) <-chan Result {
-	resultChan := make(chan Result, 1)
-	go r.doAsyncRequest(RequestMethodGet, url, header, nil, resultChan)
-	return resultChan
+// GetAsync 发起异步GET请求，结果通过传入的chan返回
+func (r *Requester) GetAsync(url string, header map[string]string, resultChan chan<- Result) {
+	go func() {
+		body, err := r.doRequest(RequestMethodGet, url, header, nil)
+		resultChan <- Result{Body: body, Error: err}
+	}()
 }
 
-// PostAsync 发起异步POST请求，返回结果通道
-func (r *Requester) PostAsync(url string, header map[string]string, jsonBody []byte) <-chan Result {
-	resultChan := make(chan Result, 1)
-	go r.doAsyncRequest(RequestMethodPost, url, header, jsonBody, resultChan)
-	return resultChan
+// PostAsync 发起异步POST请求，结果通过传入的chan返回
+func (r *Requester) PostAsync(url string, header map[string]string, jsonBody []byte, resultChan chan<- Result) {
+	go func() {
+		body, err := r.doRequest(RequestMethodPost, url, header, jsonBody)
+		resultChan <- Result{Body: body, Error: err}
+	}()
 }
 
-// 执行异步HTTP请求
-func (r *Requester) doAsyncRequest(method, url string, header map[string]string, body []byte, resultChan chan<- Result) {
-	body, err := r.doRequest(method, url, header, body)
-	resultChan <- Result{Body: body, Error: err}
-	close(resultChan)
-}
-
-// Get 发起 GET 请求
+// Get 发起 GET 请求（同步）
 func (r *Requester) Get(url string, header map[string]string) ([]byte, error) {
 	return r.doRequest(RequestMethodGet, url, header, nil)
 }
 
-// Post 发起 POST 请求
+// Post 发起 POST 请求（同步）
 func (r *Requester) Post(url string, header map[string]string, jsonBody []byte) ([]byte, error) {
 	return r.doRequest(RequestMethodPost, url, header, jsonBody)
 }
