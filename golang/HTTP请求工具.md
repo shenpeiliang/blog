@@ -2,7 +2,7 @@
 
 ## 概述
 
-`request` 包提供了一个简单易用的HTTP客户端封装，支持GET和POST请求，具有超时控制和请求头设置功能。
+`request` 包提供了一个简单易用的HTTP客户端封装，支持GET和POST请求，具有超时控制和请求头设置功能，支持使用通信(channel)来协调异步请求。
 
 
 ## 快速开始
@@ -197,6 +197,12 @@ const (
 	RequestMethodPost = "POST"
 )
 
+// 请求结果
+type Result struct {
+	Body  []byte
+	Error error
+}
+
 type RequesterOption func(*Requester)
 
 func WithClient(client *http.Client) RequesterOption {
@@ -228,6 +234,27 @@ func NewRequester(opts ...RequesterOption) *Requester {
 		opt(r)
 	}
 	return r
+}
+
+// GetAsync 发起异步GET请求，返回结果通道
+func (r *Requester) GetAsync(url string, header map[string]string) <-chan Result {
+	resultChan := make(chan Result, 1)
+	go r.doAsyncRequest(RequestMethodGet, url, header, nil, resultChan)
+	return resultChan
+}
+
+// PostAsync 发起异步POST请求，返回结果通道
+func (r *Requester) PostAsync(url string, header map[string]string, jsonBody []byte) <-chan Result {
+	resultChan := make(chan Result, 1)
+	go r.doAsyncRequest(RequestMethodPost, url, header, jsonBody, resultChan)
+	return resultChan
+}
+
+// 执行异步HTTP请求
+func (r *Requester) doAsyncRequest(method, url string, header map[string]string, body []byte, resultChan chan<- Result) {
+	body, err := r.doRequest(method, url, header, body)
+	resultChan <- Result{Body: body, Error: err}
+	close(resultChan)
 }
 
 // Get 发起 GET 请求
