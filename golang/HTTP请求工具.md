@@ -186,7 +186,6 @@ package request
 
 import (
 	"bytes"
-	"context"
 	"io"
 	"net/http"
 	"time"
@@ -196,12 +195,6 @@ const (
 	RequestMethodGet  = "GET"
 	RequestMethodPost = "POST"
 )
-
-// 请求结果
-type Result struct {
-	Body  []byte
-	Error error
-}
 
 type RequesterOption func(*Requester)
 
@@ -236,22 +229,6 @@ func NewRequester(opts ...RequesterOption) *Requester {
 	return r
 }
 
-// GetAsync 发起异步GET请求，结果通过传入的chan返回
-func (r *Requester) GetAsync(url string, header map[string]string, resultChan chan<- Result) {
-	go func() {
-		body, err := r.doRequest(RequestMethodGet, url, header, nil)
-		resultChan <- Result{Body: body, Error: err}
-	}()
-}
-
-// PostAsync 发起异步POST请求，结果通过传入的chan返回
-func (r *Requester) PostAsync(url string, header map[string]string, jsonBody []byte, resultChan chan<- Result) {
-	go func() {
-		body, err := r.doRequest(RequestMethodPost, url, header, jsonBody)
-		resultChan <- Result{Body: body, Error: err}
-	}()
-}
-
 // Get 发起 GET 请求（同步）
 func (r *Requester) Get(url string, header map[string]string) ([]byte, error) {
 	return r.doRequest(RequestMethodGet, url, header, nil)
@@ -264,9 +241,6 @@ func (r *Requester) Post(url string, header map[string]string, jsonBody []byte) 
 
 // 执行HTTP请求
 func (r *Requester) doRequest(method, url string, header map[string]string, body []byte) ([]byte, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), r.timeout)
-	defer cancel()
-
 	var reqBody io.Reader
 	if body != nil {
 		reqBody = bytes.NewBuffer(body)
@@ -281,8 +255,6 @@ func (r *Requester) doRequest(method, url string, header map[string]string, body
 		req.Header.Set(k, v)
 	}
 
-	req = req.WithContext(ctx)
-
 	resp, err := r.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -290,6 +262,148 @@ func (r *Requester) doRequest(method, url string, header map[string]string, body
 	defer resp.Body.Close()
 
 	return io.ReadAll(resp.Body)
+}
+
+```
+
+支持异步
+```go
+package async
+
+import (
+	"bytes"
+	"context"
+	"fmt"
+	"io"
+	"net/http"
+	"time"
+)
+
+const (
+	defaultTimeout    = 30 * time.Second
+	RequestMethodGet  = "GET"
+	RequestMethodPost = "POST"
+)
+
+// 异步请求结果
+type Result struct {
+	Body  []byte
+	Error error
+}
+
+// 请求器配置选项
+type RequesterOption func(*Requester)
+
+// 设置http client
+func WithClient(client *http.Client) RequesterOption {
+	return func(r *Requester) {
+		r.client = client
+	}
+}
+
+// 设置超时时间
+func WithTimeout(timeout time.Duration) RequesterOption {
+	return func(r *Requester) {
+		r.client.Timeout = timeout
+	}
+}
+
+type Requester struct {
+	client *http.Client
+}
+
+// NewRequester 创建一个请求器
+func NewRequester(opts ...RequesterOption) *Requester {
+	r := &Requester{
+		client: &http.Client{
+			Timeout: defaultTimeout, //设置默认超时时间
+		},
+	}
+
+	for _, opt := range opts {
+		opt(r)
+	}
+	return r
+}
+
+func (r *Requester) Get(ctx context.Context, url string, header map[string]string) ([]byte, error) {
+	return r.doRequest(ctx, RequestMethodGet, url, header, nil)
+}
+
+func (r *Requester) Post(ctx context.Context, url string, header map[string]string, jsonBody []byte) ([]byte, error) {
+	return r.doRequest(ctx, RequestMethodPost, url, header, jsonBody)
+}
+
+func (r *Requester) GetAsync(ctx context.Context, url string, header map[string]string, resultChan chan<- Result) {
+	go r.asyncWrapper(ctx, RequestMethodGet, url, header, nil, resultChan)
+}
+
+func (r *Requester) PostAsync(ctx context.Context, url string, header map[string]string, jsonBody []byte, resultChan chan<- Result) {
+	go r.asyncWrapper(ctx, RequestMethodPost, url, header, jsonBody, resultChan)
+}
+
+// 异步请求的包装器
+func (r *Requester) asyncWrapper(ctx context.Context, method, url string, header map[string]string, body []byte, resultChan chan<- Result) {
+	defer func() {
+		if err := recover(); err != nil {
+			select {
+			case <-ctx.Done():
+				// 如果上下文被取消，直接退出
+				return
+			case resultChan <- Result{Error: fmt.Errorf("panic: %v", err)}:
+			}
+		}
+	}()
+
+	// 请求前检查上下文是否已经被取消
+	select {
+	case <-ctx.Done():
+		// 如果上下文被取消，直接退出
+		return
+	default:
+		// 继续执行
+	}
+
+	// 执行请求
+	body, err := r.doRequest(ctx, method, url, header, body)
+
+	// 再次检查上下文是否已经被取消
+	select {
+	case <-ctx.Done():
+		// 如果上下文被取消，直接退出
+		return
+	case resultChan <- Result{Body: body, Error: err}:
+	}
+}
+
+// 发送请求
+func (r *Requester) doRequest(ctx context.Context, method, url string, header map[string]string, body []byte) ([]byte, error) {
+	var reqBody io.Reader
+	if body != nil {
+		reqBody = bytes.NewBuffer(body)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, method, url, reqBody)
+	if err != nil {
+		return nil, fmt.Errorf("create request failed: %w", err)
+	}
+
+	for k, v := range header {
+		req.Header.Set(k, v)
+	}
+
+	resp, err := r.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("do request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read response failed: %w", err)
+	}
+
+	return data, nil
 }
 
 ```
