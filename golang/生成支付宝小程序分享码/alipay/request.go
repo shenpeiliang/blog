@@ -2,7 +2,6 @@ package alipay
 
 import (
 	"bytes"
-	"context"
 	"io"
 	"net/http"
 	"time"
@@ -65,9 +64,6 @@ func (r *Requester) Post(url string, header map[string]string, jsonBody []byte) 
 
 // 执行HTTP请求
 func (r *Requester) doRequest(method, url string, header map[string]string, body []byte) ([]byte, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), r.timeout)
-	defer cancel()
-
 	var reqBody io.Reader
 	if body != nil {
 		reqBody = bytes.NewBuffer(body)
@@ -81,8 +77,6 @@ func (r *Requester) doRequest(method, url string, header map[string]string, body
 	for k, v := range header {
 		req.Header.Set(k, v)
 	}
-
-	req = req.WithContext(ctx)
 
 	resp, err := r.client.Do(req)
 	if err != nil {
