@@ -1,0 +1,10 @@
+[meilisearch]
+host = "http://localhost:7700"
+master_key = "pU3GxrEG_QOl7Ky68cLrN8TJjT-wzRF1BjmUWKV_tDY" 
+api_key = "b6a1552edabd1f649535df47d6923fa3f4b9f4d7b2c4f567caf5e5009aeeeeed"
+
+# 可选：索引默认设置
+[meilisearch.indices.books]
+searchable_attributes = ["title", "authors", "genres"] # 可搜索的字段
+filterable_attributes = ["price", "publish_date"] # 可过滤的字段
+sortable_attributes = ["price", "publish_date"] # 可排序的字段
